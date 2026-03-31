@@ -1,60 +1,91 @@
 <script lang="ts">
-    import logo from '$lib/assets/logo.png';
+    import logo from '$lib/assets/cubulan.png';
 </script>
 
 <style>
     .navbar {
-
-        font-size: 20px;
         position: absolute;
         top: 0;
         left: 0;
 
-        width: 100vw;
+        width: 100%;
         height: 7rem;
-
-        padding: 0 10rem 0 10rem;
+        box-sizing: border-box;
+        padding: 0 2rem;
 
         display: flex;
-        flex-direction: row;
-        justify-content: space-around;
+        justify-content: space-between;
         align-items: center;
 
         font-family: 'Poppins', sans-serif;
-        gap: 5rem;
+
+        color: var(--white);
         z-index: 10;
     }
 
+    .left {
+        display: flex;
+        align-items: center;
+        gap: 2.5rem;
+    }
+
+    .right {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
     a {
-        color: inherit;
+        color: var(--white);
         text-decoration: none;
+        white-space: nowrap;
     }
 
     a:hover {
-        text-decoration: underline;
+        opacity: 0.8;
     }
 
     .logo {
-        height: 100%;
         display: flex;
         align-items: center;
+        height: 3rem;
     }
 
     .logo img {
-        height: 7rem;
+        height: 100%;
         width: auto;
+        object-fit: contain;
         display: block;
+    }
+
+    .cta {
+        background: var(--orange);
+        color: var(--dark);
+        padding: 0.6rem 1.2rem;
+        border-radius: 999px;
+        font-weight: 600;
+    }
+
+    .cta:hover {
+        opacity: 0.9;
     }
 </style>
 
 <nav class="navbar">
-    <a class="logo" href="/">
-        <img src={logo} alt="Cubulan logo" />
-    </a>
+    <div class="left">
+        <a class="logo" href="/">
+            <img src={logo} alt="logo" />
+        </a>
 
-    <a href="/">Home</a>
-    <a href="/about">About</a>
-    <a href="/programme">Programme</a>
-    <a href="/signup">Signup</a>
-    <a href="/contact">Contact</a>
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+        <a href="/programme">Programme</a>
+        <a href="/impact">Impact</a>
+        <a href="/contact">Contact</a>
+    </div>
+
+    <div class="right">
+        <a href="/login">Login</a>
+        <a class="cta" href="/signup">Join Now</a>
+    </div>
 </nav>

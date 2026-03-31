@@ -4,11 +4,11 @@
 
 <style>
     .page {
-        width: 100vw;
+        width: 100%;
     }
 
     .section {
-        width: 100vw;
+        width: 100%;
         height: 100vh;
         display: block;
     }
@@ -19,12 +19,19 @@
         background-repeat: no-repeat;
     }
 
-    .blue-dark {
-        background-color: var(--blue-dark);
+    .sea {
+        background-color: var(--sea);
+        color: var(--white);
     }
 
-    .green {
-        background-color: var(--green);
+    .sand {
+        background-color: var(--sand);
+        color: var(--dark);
+    }
+
+    .orange {
+        background-color: var(--orange);
+        color: var(--dark);
     }
 </style>
 
@@ -34,7 +41,6 @@
             style:background-image={`url(${banner})`}
     ></section>
 
-    <section class="section blue-dark">g</section>
-    <section class="section green">g</section>
-    <section class="section blue-dark">g</section>
+    <section class="section orange">g</section>
+    <section class="section sea">g</section>
 </div>
