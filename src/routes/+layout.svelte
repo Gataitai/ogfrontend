@@ -4,6 +4,7 @@
 	import Navbar from "../components/Navbar.svelte";
 
 	let { children } = $props();
+	export const prerender = true;
 </script>
 
 <svelte:head>
