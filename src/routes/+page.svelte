@@ -234,7 +234,7 @@
 <div class="page">
     <section class="banner">
         <img class="banner-img" src={bannerUrl} alt="" />
-        <BannerWater />
+        <BannerWater imageUrl={bannerUrl} />
 
         <div class="card">
             <h1>

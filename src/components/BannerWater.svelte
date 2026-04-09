@@ -2,6 +2,12 @@
     import { onMount } from 'svelte';
     import * as THREE from 'three';
 
+    type Props = {
+        imageUrl: string;
+    };
+
+    let { imageUrl }: Props = $props();
+
     let container: HTMLDivElement;
 
     const DEBUG = false;
@@ -21,14 +27,29 @@
         container.appendChild(renderer.domElement);
 
         const uniforms = {
+            uTexture: { value: null as THREE.Texture | null },
             uMouse: { value: new THREE.Vector2(0.75, 0.5) },
             uTargetMouse: { value: new THREE.Vector2(0.75, 0.5) },
             uVelocity: { value: new THREE.Vector2(0.0, 0.0) },
             uTargetVelocity: { value: new THREE.Vector2(0.0, 0.0) },
             uAspect: { value: container.clientWidth / container.clientHeight },
+            uTextureAspect: { value: 1.0 },
             uTime: { value: 0 },
             uDebug: { value: DEBUG ? 1.0 : 0.0 }
         };
+
+        const loader = new THREE.TextureLoader();
+        const texture = loader.load(imageUrl, (loadedTexture) => {
+            uniforms.uTexture.value = loadedTexture;
+
+            if (loadedTexture.image) {
+                uniforms.uTextureAspect.value =
+                    loadedTexture.image.width / loadedTexture.image.height;
+            }
+        });
+
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
 
         const material = new THREE.ShaderMaterial({
             uniforms,
@@ -42,13 +63,60 @@
                 }
             `,
             fragmentShader: `
+                uniform sampler2D uTexture;
                 uniform vec2 uMouse;
                 uniform vec2 uVelocity;
                 uniform float uAspect;
+                uniform float uTextureAspect;
                 uniform float uTime;
                 uniform float uDebug;
 
                 varying vec2 vUv;
+
+            vec2 getCoverUv(vec2 uv, float planeAspect, float imageAspect) {
+                vec2 newUv = uv;
+
+                if (planeAspect > imageAspect) {
+                    float scale = imageAspect / planeAspect;
+
+                    // align to top instead of center
+                    newUv.y = uv.y * scale + (1.0 - scale);
+                } else {
+                    float scale = planeAspect / imageAspect;
+
+                    // keep horizontal center
+                    newUv.x = (uv.x - 0.5) * scale + 0.5;
+                }
+
+                return newUv;
+            }
+
+                vec4 blurStrong(sampler2D tex, vec2 uv) {
+                    float o1 = 0.004;
+                    float o2 = 0.008;
+                    float o3 = 0.012;
+
+                    vec4 color = vec4(0.0);
+
+                    color += texture2D(tex, uv + vec2(-o3, -o3));
+                    color += texture2D(tex, uv + vec2( o3, -o3));
+                    color += texture2D(tex, uv + vec2(-o3,  o3));
+                    color += texture2D(tex, uv + vec2( o3,  o3));
+
+                    color += texture2D(tex, uv + vec2(-o2, 0.0));
+                    color += texture2D(tex, uv + vec2( o2, 0.0));
+                    color += texture2D(tex, uv + vec2(0.0, -o2));
+                    color += texture2D(tex, uv + vec2(0.0,  o2));
+
+                    color += texture2D(tex, uv + vec2(-o1, -o1));
+                    color += texture2D(tex, uv + vec2( o1, -o1));
+                    color += texture2D(tex, uv + vec2(-o1,  o1));
+                    color += texture2D(tex, uv + vec2( o1,  o1));
+
+                    color += texture2D(tex, uv);
+
+                    return color / 13.0;
+                }
 
                 float blob(vec2 uv, vec2 center, float time, vec2 velocity, float aspect) {
                     vec2 p = uv - center;
@@ -105,33 +173,24 @@
                     float waveX = sin((uv.y + uTime * 0.8) * 20.0) * speed * 0.006;
                     float waveY = cos((uv.x - uTime * 0.6) * 18.0) * speed * 0.006;
 
-                    vec2 warpedUv = uv
-                        + dir * ripple * mask
-                        + vec2(waveX, waveY) * mask
-                        + vec2(globalWaveX, globalWaveY) * 0.35;
+                    vec2 blurredUv = uv + vec2(globalWaveX, globalWaveY);
+                    vec2 sharpUv = uv + dir * ripple * mask + vec2(waveX, waveY) * mask + vec2(globalWaveX, globalWaveY) * 0.35;
 
-                    float shimmer1 = sin((warpedUv.x + warpedUv.y) * 30.0 + uTime * 2.5);
-                    float shimmer2 = cos(warpedUv.y * 42.0 - uTime * 2.0);
-                    float shimmer3 = sin(warpedUv.x * 55.0 + warpedUv.y * 18.0 - uTime * 3.2);
+                    blurredUv = getCoverUv(blurredUv, uAspect, uTextureAspect);
+                    sharpUv = getCoverUv(sharpUv, uAspect, uTextureAspect);
 
-                    float highlight = shimmer1 * 0.5 + shimmer2 * 0.3 + shimmer3 * 0.2;
-                    highlight = highlight * 0.5 + 0.5;
-                    highlight *= mask;
+                    vec4 sharp = texture2D(uTexture, sharpUv);
+                    vec4 blurred = blurStrong(uTexture, blurredUv);
 
-                    float softGlow = smoothstep(0.35, 0.0, d) * 0.18;
-                    float edge = 1.0 - smoothstep(0.0, 0.02, abs(d));
-                    float alpha = mask * 0.22 + softGlow + edge * 0.08;
-
-                    vec3 base = vec3(1.0);
-                    vec3 color = base * (0.75 + highlight * 0.45);
+                    vec4 color = mix(blurred, sharp, mask);
 
                     if (uDebug > 0.5) {
+                        float outline = 1.0 - smoothstep(0.0, 0.01, abs(d));
                         vec3 outlineColor = vec3(1.0, 0.2, 0.2);
-                        color = mix(color, outlineColor, edge);
-                        alpha = max(alpha, edge);
+                        color.rgb = mix(color.rgb, outlineColor, outline);
                     }
 
-                    gl_FragColor = vec4(color, alpha);
+                    gl_FragColor = color;
                 }
             `
         });
@@ -142,7 +201,6 @@
 
         let lastX = 0.75;
         let lastY = 0.5;
-        let frame = 0;
 
         function updateMouse(e: PointerEvent) {
             const rect = container.getBoundingClientRect();
@@ -170,6 +228,7 @@
         window.addEventListener('resize', resize, { passive: true });
 
         const clock = new THREE.Clock();
+        let frame = 0;
 
         function animate() {
             uniforms.uTime.value = clock.getElapsedTime();
@@ -190,6 +249,7 @@
             window.removeEventListener('resize', resize);
             geometry.dispose();
             material.dispose();
+            texture.dispose();
             renderer.dispose();
             container.removeChild(renderer.domElement);
         };
@@ -200,7 +260,7 @@
     .wrap {
         position: absolute;
         inset: 0;
-        z-index: 1;
+        z-index: 0;
         pointer-events: none;
         overflow: hidden;
     }
