@@ -177,7 +177,7 @@
 
 <nav class="navbar">
     <div class="left">
-        <a class="logo" href="/" onclick={closeMenu}>
+        <a class="logo" href="https://cubulan.com" onclick={closeMenu}>
             <img src={logo} alt="logo" />
         </a>
 
@@ -190,7 +190,7 @@
 
     <div class="right">
         <a href="/login">Login</a>
-        <a class="cta" href="/signup">Join Now</a>
+        <a class="cta" href="https://wa.me/6587511990">Join Now</a>
     </div>
 
     <button

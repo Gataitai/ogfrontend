@@ -49,6 +49,7 @@
     .section-inner {
         display: flex;
         justify-content: space-between;
+        gap: 2rem;
     }
 
     .left,
@@ -173,87 +174,6 @@
         padding: 2rem 10rem 2rem 10rem;
         gap: 2rem;
         flex-wrap: wrap;
-    }
-
-    @media (max-width: 1200px) {
-        .section,
-        .banner {
-            padding: 4rem;
-        }
-
-        .card {
-            max-width: 65%;
-        }
-
-        .card h1,
-        .section h2 {
-            font-size: 40px;
-        }
-
-        .card p,
-        .section p {
-            font-size: 22px;
-        }
-    }
-
-    @media (max-width: 900px) {
-        .section-inner {
-            flex-direction: column;
-            gap: 2rem;
-        }
-
-        .banner {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 2rem;
-            min-height: auto;
-            padding-top: 6rem;
-            padding-bottom: 3rem;
-        }
-
-        .card {
-            max-width: 100%;
-        }
-    }
-
-    @media (max-width: 700px) {
-        .section,
-        .banner {
-            padding: 3rem;
-        }
-
-        .card h1,
-        .section h2 {
-            font-size: 32px;
-        }
-
-        .card p,
-        .section p {
-            font-size: 18px;
-        }
-    }
-
-    @media (max-width: 500px) {
-        .section,
-        .banner {
-            padding: 2rem;
-        }
-
-        .card h1,
-        .section h2 {
-            font-size: 26px;
-        }
-
-        .card p,
-        .section p {
-            font-size: 16px;
-            margin-bottom: 1.5rem;
-        }
-
-        .btn {
-            width: 100%;
-            text-align: center;
-        }
     }
 </style>
 
